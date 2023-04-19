@@ -85,7 +85,7 @@ const updateContact = async (req, res, next) => {
   }
 };
 
-const updateContactStatus = async (req, res, next) => {
+const updateStatusContact = async (req, res, next) => {
   const { contactId } = req.params;
   try {
     const result = await service.updateStatusContact(
@@ -96,7 +96,7 @@ const updateContactStatus = async (req, res, next) => {
       res.json({
         status: 'success',
         code: 200,
-        data: { contacts: result },
+        data: { contacts: { result } },
         message: 'Contact has beeen updated successfully',
       });
     } else {
@@ -142,5 +142,5 @@ module.exports = {
   addContact,
   updateContact,
   deleteContact,
-  updateContactStatus,
+  updateStatusContact,
 };

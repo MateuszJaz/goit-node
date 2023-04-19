@@ -7,18 +7,18 @@ router.get('/contacts', ctrlContact.get);
 
 router.get('/contacts/:contactId', ctrlContact.getById);
 
-router.post('/contacts', () => validate.createContact, ctrlContact.addContact);
+router.post('/contacts', validate.createContact, ctrlContact.addContact);
 
 router.put(
   '/contacts/:contactId',
-  () => validate.updateContact,
-  () => ctrlContact.updateContact()
+  validate.updateContact,
+  ctrlContact.updateContact
 );
 
 router.patch(
   '/contacts/:contactId/favorite',
-  () => validate.updateStatus,
-  () => ctrlContact.updateContactStatus
+  validate.updateStatus,
+  ctrlContact.updateContact
 );
 
 router.delete('/contacts/:contactId', ctrlContact.deleteContact);
