@@ -88,15 +88,12 @@ const updateContact = async (req, res, next) => {
 const updateStatusContact = async (req, res, next) => {
   const { contactId } = req.params;
   try {
-    const result = await service.updateStatusContact(
-      contactId,
-      req.body.favorite
-    );
+    const result = await service.updateStatusContact(contactId, req.body);
     if (result) {
       res.json({
         status: 'success',
         code: 200,
-        data: { contacts: { result } },
+        data: { contacts: result },
         message: 'Contact has beeen updated successfully',
       });
     } else {
