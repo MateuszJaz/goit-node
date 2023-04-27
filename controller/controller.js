@@ -1,15 +1,17 @@
-const service = require('../service/service');
+const service = require('../service/service.js');
 
 const get = async (req, res, next) => {
   try {
-    const results = await service.getAllContacts();
-    res.json({
-      status: 'success',
-      code: 200,
-      data: {
-        contacts: results,
-      },
-    });
+    let results = await service.getAllContacts();
+    const { favorite, page, limit } = req.query;
+
+    if (favorite === 'true' || favorite === 'false') {
+      results = await service.getAllContacts({ favorite: favorite });
+    }
+    if (page && limit) {
+      results = await res.paginatedResults;
+    }
+    res.status(200).json(results);
   } catch (e) {
     console.error(e);
     next(e);
@@ -85,10 +87,13 @@ const updateContact = async (req, res, next) => {
   }
 };
 
-const updateStatusContact = async (req, res, next) => {
+const updateContactStatus = async (req, res, next) => {
   const { contactId } = req.params;
   try {
-    const result = await service.updateStatusContact(contactId, req.body);
+    const result = await service.updateStatusContact(
+      contactId,
+      req.body.favorite
+    );
     if (result) {
       res.json({
         status: 'success',
@@ -139,5 +144,5 @@ module.exports = {
   addContact,
   updateContact,
   deleteContact,
-  updateStatusContact,
+  updateContactStatus,
 };

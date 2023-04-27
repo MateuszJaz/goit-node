@@ -1,26 +1,29 @@
 const express = require('express');
 const router = express.Router();
-const validate = require('../utils/validators/validator');
-const ctrlContact = require('../controller/controller');
+const validate = require('../utils/validator');
+const contactController = require('../controller/controller.js');
+const auth = require('../config/authMiddleware.js');
+const Contact = require('../service/schemas/contact.js');
+const paginatedResults = require('../utils/pagination.js');
 
-router.get('/contacts', ctrlContact.get);
+router.get('/', auth, paginatedResults(Contact), contactController.get);
 
-router.get('/contacts/:contactId', ctrlContact.getById);
+router.get('/:contactId', contactController.getById);
 
-router.post('/contacts', validate.createContact, ctrlContact.addContact);
+router.post('/', auth, validate.createContact, contactController.addContact);
+
+router.delete('/:contactId', contactController.deleteContact);
 
 router.put(
-  '/contacts/:contactId',
+  '/:contactId',
   validate.updateContact,
-  ctrlContact.updateContact
+  contactController.updateContact
 );
 
 router.patch(
-  '/contacts/:contactId/favorite',
+  '/:contactId/favorite',
   validate.updateStatus,
-  ctrlContact.updateContact
+  contactController.updateContactStatus
 );
-
-router.delete('/contacts/:contactId', ctrlContact.deleteContact);
 
 module.exports = router;
