@@ -1,20 +1,24 @@
 const express = require('express');
 const logger = require('morgan');
 const cors = require('cors');
+const path = require('path');
 
 const contactsRouter = require('./api/index');
 const usersRouter = require('./api/userApi');
 
 const app = express();
+require('./config/passport');
 
 const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
 
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
-
-require('./config/passport');
+app.use(express.urlencoded({ extended: false }));
+app.use(
+  '/avatars',
+  express.static(path.join(process.cwd(), 'public', 'avatars'))
+);
 
 app.use('/api/contacts', contactsRouter);
 app.use('/api/users', usersRouter);
