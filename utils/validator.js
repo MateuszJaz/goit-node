@@ -51,6 +51,15 @@ const subscription = Joi.object({
   subscription: Joi.string().valid('starter', 'pro', 'business').required(),
 });
 
+const emailVerification = Joi.object({
+  email: Joi.string()
+    .email({
+      minDomainSegments: 2,
+      tlds: { allow: ['com', 'net', 'pl'] },
+    })
+    .required(),
+});
+
 const validate = (schema, obj, next, res) => {
   const { error } = schema.validate(obj);
   if (error) {
@@ -79,3 +88,6 @@ module.exports.findUserByEmail = (req, res, next) =>
 
 module.exports.updateSubscription = (req, res, next) =>
   validate(subscription, req.body, next, res);
+
+module.exports.emailVerification = (req, res, next) =>
+  validate(emailVerification, req.body, next, res);

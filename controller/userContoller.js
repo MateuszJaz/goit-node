@@ -3,6 +3,8 @@ const fs = require('fs/promises');
 const jwt = require('jsonwebtoken');
 const gravatar = require('gravatar');
 const Jimp = require('jimp');
+const { v4 } = require('uuid');
+const { sendVerificationEmail } = require('../config/sendgrid');
 
 const service = require('../service/users.js');
 const User = require('../service/schemas/user.js');
@@ -25,15 +27,18 @@ const signUp = async (req, res, next) => {
       })
       .replace(/^\/\//, 'https://');
 
-    const newUser = new User({ email, avatarURL });
+    const verificationToken = v4();
+    const newUser = new User({ email, avatarURL, verificationToken });
     newUser.setPassword(password);
     await newUser.save();
+    await sendVerificationEmail(email, verificationToken);
     return res.status(201).json({
       message: 'Registration successful',
       user: {
         email: newUser.email,
         subscription: newUser.subscription,
         avatarURL,
+        verificationToken,
       },
     });
   } catch (e) {
@@ -124,9 +129,7 @@ const avatarUpdate = async (req, res, next) => {
 
   Jimp.read(temporaryName)
     .then((avatar) => {
-      return avatar
-        .resize(250, 250) // resize
-        .write(AVATAR_DIR); // save
+      return avatar.resize(250, 250).write(AVATAR_DIR);
     })
     .catch((err) => {
       console.error(err);
@@ -142,6 +145,39 @@ const avatarUpdate = async (req, res, next) => {
   res.status(200).json({ avatarURL: shortenAvatarURL(avatarURL) });
 };
 
+const sendEmailConfirmation = async (req, res, next) => {
+  const { verificationToken } = req.params;
+  try {
+    const user = await service.verifyToken(verificationToken);
+    user
+      ? res.status(200).json({ message: 'Verification successful' })
+      : res.status(404).json({ message: `User not found` });
+  } catch (e) {
+    next(e);
+  }
+};
+
+const resendEmailConfirmation = async (req, res, next) => {
+  const { email } = req.body;
+  try {
+    const user = await service.findUserByEmail(email);
+
+    if (!user) {
+      res.status(404).json({ message: `User not found` });
+    }
+    if (user.verify) {
+      res.status(400).json({
+        message: `Verification has already been passed`,
+        data: 'Bad request',
+      });
+    }
+    await sendVerificationEmail(email, user.verificationToken);
+    res.status(200).json({ message: 'Verification email sent' });
+  } catch (e) {
+    next(e);
+  }
+};
+
 module.exports = {
   signUp,
   login,
@@ -149,4 +185,6 @@ module.exports = {
   currentUser,
   updateSubs,
   avatarUpdate,
+  sendEmailConfirmation,
+  resendEmailConfirmation,
 };
